@@ -109,7 +109,7 @@ async def login_user(user_data: UsuarioLogin, db: Session = Depends(get_db)):
     )
 
     # Guardar token en la base de datos
-    expiracion = datetime.utcnow() + timedelta(minutes=2)
+    expiracion = datetime.utcnow() + timedelta(minutes=20)
     new_token = AuthToken(
         user_id=user.id,
         jwt_token=access_token,
