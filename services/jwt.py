@@ -5,7 +5,7 @@ from config import SessionLocal
 from datetime import datetime, timedelta, timezone
 from model.models import Usuarios, AuthToken
 from config import SECRET_KEY
-
+from utils.time import utcnow 
 import jwt
 
 security = HTTPBearer()
@@ -17,13 +17,9 @@ def get_db():
     finally:
         db.close() 
 
-from datetime import datetime, timedelta
-import jwt
-from config import SECRET_KEY
-
-def create_access_token(data: dict, expires_delta: timedelta = timedelta(hours=2)):
+def create_access_token(data: dict, expires_delta: timedelta = timedelta(minutes=30)):
     to_encode = data.copy()
-    expire = datetime.now(timezone.utc) + expires_delta
+    expire = utcnow() + expires_delta
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm="HS256")
     return encoded_jwt

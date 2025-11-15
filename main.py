@@ -5,6 +5,7 @@ from config import SessionLocal, Base, engine
 from routes import NewVideoCall, auth, ejemplo, estudiante, getstreamFile, profesores, administrador
 from model.models import Roles, Usuarios
 from services.cifrar import hash_password
+from datetime import datetime, timedelta, timezone
 
 app = FastAPI()
 
@@ -85,6 +86,15 @@ def seed_admin():
 @app.get("/")
 def read_root():
     return {"message": "API is running"}
+
+@app.get("/server-time")
+def server_time():
+    now = datetime.now(timezone.utc)
+    expire = now + timedelta(minutes=30)
+    return {
+        "server_current_time": now.isoformat(),
+        "token_will_expire_at": expire.isoformat()
+    }
 
 # Importar rutas
 app.include_router(ejemplo.router)

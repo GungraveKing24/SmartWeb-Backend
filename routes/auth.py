@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from model.models import Usuarios, AuthToken, Roles
 from services.cifrar import hash_password
 from schemas.s_usuarios import UsuarioLogin, UsuarioCreate
@@ -10,6 +10,7 @@ from config import SessionLocal, DOMINIO_VERIFICACION
 from services.jwt import create_access_token, verify_token
 from services.email import send_email
 from uuid import uuid4
+from utils.time import utcnow 
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 security = HTTPBearer()
@@ -112,7 +113,7 @@ async def login_user(user_data: UsuarioLogin, db: Session = Depends(get_db)):
 
     # 🔥 Nueva lógica: si el token existe pero ya expiró, lo revocamos
     if existing_token:
-        now = datetime.utcnow()
+        now = utcnow()
         if existing_token.expiracion < now:
             existing_token.revocado = True
             db.commit()
@@ -126,11 +127,11 @@ async def login_user(user_data: UsuarioLogin, db: Session = Depends(get_db)):
     # Generar token JWT (con expiración corta, p.ej. 2 minutos para pruebas)
     access_token = create_access_token(
         {"sub": str(user.id), "name": user.nombre, "rol": str(role.nombre_rol)},
-        expires_delta=timedelta(minutes=2)
+        expires_delta=timedelta(minutes=30)
     )
 
     # Guardar token en la base de datos
-    expiracion = datetime.utcnow() + timedelta(minutes=20)
+    expiracion = utcnow() + timedelta(minutes=30)
     new_token = AuthToken(
         user_id=user.id,
         jwt_token=access_token,
