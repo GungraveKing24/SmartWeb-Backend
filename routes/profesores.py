@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from config import SessionLocal
 from model.models import Cursos, RoleLlamada, Usuarios, Sesiones_Virtuales, Participantes_Sesion_V
 from schemas.s_cursos import CursoCreate, CursoResponse
@@ -14,6 +14,13 @@ def get_db():
         yield db
     finally:
         db.close()
+
+def local():
+    utc_now = datetime.now(timezone.utc)
+    gmt_minus_6_fixed = timezone(timedelta(hours=-6))
+    gmt_minus_6_time = utc_now.astimezone(gmt_minus_6_fixed)
+
+    return gmt_minus_6_time
 
 # Obtener los cursos de un profesor (activos e inactivos)
 @router.get("/courses/active/")
@@ -154,7 +161,7 @@ async def get_calendar(professor_id: int, current=Depends(verify_token), db: Ses
     cursos_ids = [c.id for c in cursos]
 
     # 🗓 Calcular el rango de la semana actual (lunes a domingo)
-    today = datetime.now()
+    today = local()
     start_of_week = today - timedelta(days=today.weekday())  # lunes
     end_of_week = start_of_week + timedelta(days=6)          # domingo
 

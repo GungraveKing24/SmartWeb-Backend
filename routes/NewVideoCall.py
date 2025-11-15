@@ -2,7 +2,7 @@ from functools import cached_property
 from os import name
 from typing import ChainMap
 from fastapi import APIRouter, Depends, HTTPException
-from model.models import CalidadVideo, Inscritos_Curso, Participantes_Sesion_V, RoleLlamada, Roles, Sesiones_Virtuales, Usuarios
+from model.models import CalidadVideo, Cursos, Inscritos_Curso, Participantes_Sesion_V, RoleLlamada, Roles, Sesiones_Virtuales, Usuarios
 from pydantic import BaseModel
 from getstream import Stream
 from getstream.models import UserRequest
@@ -38,6 +38,22 @@ def get_db():
 async def create_call(Info: CallCreate, current=Depends(verify_token), db:Session = Depends(get_db)):
     if current.role_name != "Profesor":
         raise HTTPException(status_code=403, detail="No tienes permisos para crear llamadas")
+
+# 🔍 Verificar si el profesor tiene sesiones que se cruzan
+    conflicto = db.query(Sesiones_Virtuales).filter(
+        Sesiones_Virtuales.id_curso.in_(
+            db.query(Cursos.id).filter(Cursos.profesor_id == current.id)
+        ),
+        Sesiones_Virtuales.hora_inicio < Info.hora_fin,
+        Sesiones_Virtuales.hora_fin > Info.hora_inicio
+    ).first()
+
+    if conflicto:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Ya tienes una sesión en ese horario: {conflicto.titulo} "
+                   f"({conflicto.hora_inicio} → {conflicto.hora_fin})"
+        )
 
     integrantes = db.query(Inscritos_Curso).filter(
         Inscritos_Curso.id_curso == Info.curso_id,

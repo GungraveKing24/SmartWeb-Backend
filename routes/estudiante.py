@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import uuid
 from config import SessionLocal
 from fastapi import APIRouter, Depends, HTTPException
@@ -14,6 +14,13 @@ def get_db():
         yield db
     finally:
         db.close()
+
+def local():
+    utc_now = datetime.now(timezone.utc)
+    gmt_minus_6_fixed = timezone(timedelta(hours=-6))
+    gmt_minus_6_time = utc_now.astimezone(gmt_minus_6_fixed)
+
+    return gmt_minus_6_time
 
 # Obtener los cursos inscritos de un estudiante (activos e inactivos)
 @router.get("/courses/active")
@@ -133,7 +140,7 @@ async def get_calendar(student_id: int, current=Depends(verify_token), db: Sessi
     cursos_ids = [i.id_curso for i in inscripciones]
 
     # 🗓 Calcular inicio y fin de la semana actual
-    today = datetime.now()
+    today = local()
     start_of_week = today - timedelta(days=today.weekday())  # lunes
     end_of_week = start_of_week + timedelta(days=6)          # domingo
 
