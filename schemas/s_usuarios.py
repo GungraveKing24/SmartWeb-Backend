@@ -8,7 +8,7 @@ class UsuarioCreate(BaseModel):
     email: EmailStr
     password: str
     role: str  # e.g., "Estudiante", "Profesor"
-    #motivacion: Optional[str] = None
+    motivacion: Optional[str] = None
     profesor_institucion: Optional[str] = None
     profesor_cedula: Optional[int] = None
 
