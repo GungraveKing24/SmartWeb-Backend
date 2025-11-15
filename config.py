@@ -17,8 +17,9 @@ STREAM_API_SECRET = os.getenv("STREAM_API_SECRET", None)
 STREAM_BASE_URL = os.getenv("STREAM_BASE_URL", None)
 
 # Mailersend
-MAILERSEND_API_KEY = os.getenv("MAILERSEND_API_KEY", None)
-MAILERSEND_SENDER = os.getenv("MAILERSEND_SENDER", None)
+BREVO_API_KEY = os.getenv("BREVO_API_KEY", None)
+BREVO_SENDER_EMAIL = os.getenv("BREVO_SENDER_EMAIL", None)
+BREVO_SENDER_NAME = os.getenv("BREVO_SENDER_NAME", None)
 DOMINIO_VERIFICACION = os.getenv("DOMINIO_VERIFICACION", None)
 
 # Configuración de SQLAlchemy
