@@ -52,7 +52,8 @@ async def get_profesores(current=Depends(verify_token), db: Session = Depends(ge
             "status": p.status.value,
             "cedula": p.profesor_cedula,
             "instituto": p.profesor_institucion,
-            "fecha": p.creacion_cuenta
+            "fecha": p.creacion_cuenta,
+            #"motivacion": p.motivacion
         }
         for p in profesores
     ]
@@ -138,9 +139,9 @@ async def change_user_role(user_id: int, new_role: str, current=Depends(verify_t
     db.commit()
     return {"message": "Rol cambiado correctamente"}
 
-# Eliminar un usuario
-@router.delete("/users/{user_id}")
-async def delete_user(
+# Desactivar un usuario
+@router.post("/users/{user_id}")
+async def deactivate_user(
         user_id: int,
         current=Depends(verify_token),
         db: Session = Depends(get_db)
@@ -152,10 +153,10 @@ async def delete_user(
 
     if not user:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
-
-    db.delete(user)
+    
+    user.status = "Inactivo"
     db.commit()
-
+    
     return {"message": "Usuario eliminado correctamente"}
 
 # Obtener todos los cursos con información detallada

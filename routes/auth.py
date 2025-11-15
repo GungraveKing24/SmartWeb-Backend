@@ -43,6 +43,7 @@ async def register_user(user: UsuarioCreate, db: Session = Depends(get_db)):
         token_activacion=activation_token,
         confirmado=False,
         status="Inactivo",
+       #motivacion=user.motivacion, 
         profesor_institucion=user.profesor_institucion,
         profesor_cedula=user.profesor_cedula
     )
