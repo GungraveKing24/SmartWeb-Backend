@@ -16,6 +16,11 @@ STREAM_API_KEY = os.getenv("STREAM_API_KEY", None)
 STREAM_API_SECRET = os.getenv("STREAM_API_SECRET", None)
 STREAM_BASE_URL = os.getenv("STREAM_BASE_URL", None)
 
+# Mailersend
+MAILERSEND_API_KEY = os.getenv("MAILERSEND_API_KEY", None)
+MAILERSEND_SENDER = os.getenv("MAILERSEND_SENDER", None)
+DOMINIO_VERIFICACION = os.getenv("DOMINIO_VERIFICACION", None)
+
 # Configuración de SQLAlchemy
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

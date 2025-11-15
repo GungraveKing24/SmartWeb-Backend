@@ -6,7 +6,7 @@ from model.models import Usuarios, AuthToken, Roles
 from services.cifrar import hash_password
 from schemas.s_usuarios import UsuarioLogin, UsuarioCreate
 from services.cifrar import verify_password
-from config import SessionLocal
+from config import SessionLocal, DOMINIO_VERIFICACION
 from services.jwt import create_access_token, verify_token
 from services.email import send_email
 from uuid import uuid4
@@ -50,18 +50,38 @@ async def register_user(user: UsuarioCreate, db: Session = Depends(get_db)):
 
     if default_role.nombre_rol == "Estudiante":
         # Enviar email directo
-        activation_link = f"http://localhost:8000/auth/activate/{activation_token}"
+        activation_link = f"{DOMINIO_VERIFICACION}/auth/activate/{activation_token}"
+        
+        html_message = f"""
+        <h2>Hola {user.nombre} 👋</h2>
+        <p>Gracias por registrarte. Para activar tu cuenta, haz clic en el siguiente enlace:</p>
+            <a href="{activation_link}" 
+            style="padding: 10px 15px; background: #4f46e5; color: white; text-decoration:none; border-radius: 6px;">
+            Activar mi cuenta
+        </a>
+        <br><br>
+        <p>Si no solicitaste esta cuenta, ignora este mensaje.</p>
+        """
+
         await send_email(
             to=user.email,
-            subject="Activa tu cuenta",
-            body=f"Hola {user.nombre}, activa tu cuenta aquí: {activation_link}"
+            subject="Activa tu cuenta - Plataforma Educativa",
+            html_body=html_message
         )
+        
     elif default_role.nombre_rol == "Profesor":
-        # En espera de aprobación del administrador
+        html_admin = f"""
+        <h2>Nuevo profesor pendiente de aprobación</h2>
+        <p>Nombre: {user.nombre} {user.apellido}</p>
+        <p>Email: {user.email}</p>
+        <p>Cédula: {user.profesor_cedula}</p>
+        <p>Institución: {user.profesor_institucion}</p>
+        """
+
         await send_email(
             to="gungraveheat123@gmail.com",
-            subject="Nuevo profesor pendiente de aprobación",
-            body=f"El profesor {user.nombre} {user.apellido} está pendiente de aprobación."
+            subject="Nuevo profesor esperando aprobación",
+            html_body=html_admin
         )
 
     db.add(nuevo_usuario)
