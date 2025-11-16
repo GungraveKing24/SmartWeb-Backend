@@ -18,6 +18,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "https://smartwebapp--composite-sun-374501.us-east4.hosted.app",
+        "https://smartwebapp--composite-sun-374501.us-east4.hosted.app/",
+        "https://smartwebapp--composite-sun-374501.us-east4.hosted.app/*",
         "http://localhost:5173",  # para desarrollo
     ],
     allow_credentials=True,
