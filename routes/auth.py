@@ -187,10 +187,10 @@ async def activate_account(token: str, db: Session = Depends(get_db)):
     return {"message": "Cuenta activada correctamente"}
 
 @router.get("/verify-token")
-async def verify_user_token(current=Depends(verify_token)):
+async def verify_user_token(current = Depends(verify_token)):
     return {
         "valid": True,
         "user_id": current.id,
         "nombre": current.nombre,
-        "rol": current.rol.nombre_rol if hasattr(current, "rol") else None
+        "rol": current.role_name.lower(),
     }

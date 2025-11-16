@@ -16,7 +16,10 @@ Base.metadata.create_all(bind=engine)
 # CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "https://smartwebapp--composite-sun-374501.us-east4.hosted.app",
+        "http://localhost:5173",  # para desarrollo
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
