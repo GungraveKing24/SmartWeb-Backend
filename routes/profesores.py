@@ -16,11 +16,10 @@ def get_db():
         db.close()
 
 def local():
-    utc_now = datetime.now(timezone.utc)
-    gmt_minus_6_fixed = timezone(timedelta(hours=-6))
-    gmt_minus_6_time = utc_now.astimezone(gmt_minus_6_fixed)
+    now = datetime.now()
+    ajustado = now - timedelta(hours=6)
 
-    return gmt_minus_6_time
+    return ajustado
 
 # Obtener los cursos de un profesor (activos e inactivos)
 @router.get("/courses/active/")

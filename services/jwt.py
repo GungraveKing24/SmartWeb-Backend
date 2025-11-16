@@ -20,7 +20,7 @@ def get_db():
 def create_access_token(data: dict, expires_delta: timedelta = timedelta(minutes=30)):
     to_encode = data.copy()
     expire = utcnow() + expires_delta
-    to_encode.update({"exp": expire})
+    to_encode["exp"] = int(expire.timestamp())
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm="HS256")
     return encoded_jwt
 
