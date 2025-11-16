@@ -84,7 +84,7 @@ async def approve_profesor(
     await send_email(
         to=profesor.email,
         subject="Cuenta aprobada",
-        body=f"Hola {profesor.nombre}, tu cuenta de profesor ha sido aprobada."
+        html_body=f"Hola {profesor.nombre}, tu cuenta de profesor ha sido aprobada."
     )
 
     return {"message": "Profesor aprobado y notificado"}
@@ -115,7 +115,7 @@ async def deny_profesor(
     await send_email(
         to=profesor.email,
         subject="Cuenta denegada",
-        body=f"Hola {profesor.nombre}, tu cuenta de profesor ha sido denegada."
+        html_body=f"Hola {profesor.nombre}, tu cuenta de profesor ha sido denegada."
 )
 
 # Cambiar el rol de un usuario

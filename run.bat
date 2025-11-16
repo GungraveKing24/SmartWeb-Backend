@@ -1,10 +1,6 @@
-# crear entorno virtual
-#python -m venv env # Windows
-python3 -m venv env # Linux
+python -m venv env # Windows
 
-# activar entorno virtual
-#source env/Scripts/activate # Windows
-source env/bin/activate # Linux
+env/scripts/activate
 
 # instalar dependencias
 pip install -r requirements.txt
