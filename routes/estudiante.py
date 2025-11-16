@@ -177,7 +177,6 @@ async def get_calendar(student_id: int, current=Depends(verify_token), db: Sessi
 
     return {"calendario": calendario, "total": len(calendario)}
 
-
 @router.get("/available")
 async def get_available_courses(
     current_user: Usuarios = Depends(verify_token),
