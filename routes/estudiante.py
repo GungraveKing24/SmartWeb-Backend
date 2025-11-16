@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from model.models import Inscritos_Curso, Cursos, Usuarios, Sesiones_Virtuales
 from sqlalchemy.orm import Session
 from services.jwt import verify_token
+from utils.time import remove_tz, now_naive
 
 router = APIRouter(prefix="/students", tags=["Student"])
 
@@ -14,12 +15,6 @@ def get_db():
         yield db
     finally:
         db.close()
-
-def local():
-    now = datetime.now()
-    ajustado = now - timedelta(hours=6)
-
-    return ajustado
 
 # Obtener los cursos inscritos de un estudiante (activos e inactivos)
 @router.get("/courses/active")
@@ -139,7 +134,7 @@ async def get_calendar(student_id: int, current=Depends(verify_token), db: Sessi
     cursos_ids = [i.id_curso for i in inscripciones]
 
     # 🗓 Calcular inicio y fin de la semana actual
-    today = local()
+    today = now_naive()
     start_of_week = today - timedelta(days=today.weekday())  # lunes
     end_of_week = start_of_week + timedelta(days=6)          # domingo
 
@@ -155,17 +150,16 @@ async def get_calendar(student_id: int, current=Depends(verify_token), db: Sessi
 
     calendario = []
     
-    now_utc = datetime.now(timezone.utc)
-    now_local = now_utc - timedelta(hours=6)
+    now = now_naive()
 
     for sesion in sesiones:
         curso = db.query(Cursos).filter(Cursos.id == sesion.id_curso).first()
         profesor = db.query(Usuarios).filter(Usuarios.id == curso.profesor_id).first()
 
         # 🕒 Determinar estado de la llamada
-        if sesion.hora_fin < now_local:
+        if sesion.hora_fin < now:
             estado = "concluida"
-        elif sesion.hora_inicio <= now_local <= sesion.hora_fin:
+        elif sesion.hora_inicio <= now <= sesion.hora_fin:
             estado = "en_curso"
         else:
             estado = "futura"
@@ -174,8 +168,8 @@ async def get_calendar(student_id: int, current=Depends(verify_token), db: Sessi
             "curso": curso.titulo,
             "sesion": sesion.titulo,
             "descripcion": sesion.descripcion,
-            "hora_inicio": sesion.hora_inicio,
-            "hora_fin": sesion.hora_fin,
+            "hora_inicio": remove_tz(sesion.hora_inicio),
+            "hora_fin": remove_tz(sesion.hora_fin),
             "enlace_llamada": sesion.enlace_llamada,
             "profesor": f"{profesor.nombre} {profesor.apellido}",
             "estado": estado

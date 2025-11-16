@@ -1,10 +1,11 @@
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from config import SessionLocal
 from model.models import Cursos, RoleLlamada, Usuarios, Sesiones_Virtuales, Participantes_Sesion_V
-from schemas.s_cursos import CursoCreate, CursoResponse
+from schemas.s_cursos import CursoCreate 
 from services.jwt import verify_token
 from sqlalchemy.orm import Session
 from fastapi import APIRouter, Depends, HTTPException
+from utils.time import remove_tz, now_naive
 
 router = APIRouter(tags=["Profesor"])
 
@@ -14,12 +15,6 @@ def get_db():
         yield db
     finally:
         db.close()
-
-def local():
-    now = datetime.now()
-    ajustado = now - timedelta(hours=6)
-
-    return ajustado
 
 # Obtener los cursos de un profesor (activos e inactivos)
 @router.get("/courses/active/")
@@ -176,8 +171,7 @@ async def get_calendar(professor_id: int, current=Depends(verify_token), db: Ses
 
     calendario = []
     
-    now_utc = datetime.now(timezone.utc)
-    now_local = now_utc - timedelta(hours=6)
+    now = now_naive()
 
     for sesion in sesiones:
         # Contar participantes (si existen)
@@ -190,19 +184,19 @@ async def get_calendar(professor_id: int, current=Depends(verify_token), db: Ses
         curso = db.query(Cursos).filter(Cursos.id == sesion.id_curso).first()
 
         # 🕒 Determinar estado de la sesión
-        if sesion.hora_fin < now_local:
+        if sesion.hora_fin < now:
             estado = "concluida"
-        elif sesion.hora_inicio <= now_local <= sesion.hora_fin:
+        elif sesion.hora_inicio <= now <= sesion.hora_fin:
             estado = "en_curso"
         else:
             estado = "futura"
-
+            
         calendario.append({
             "curso": curso.titulo,
             "sesion": sesion.titulo,
             "descripcion": sesion.descripcion,
-            "hora_inicio": sesion.hora_inicio,
-            "hora_fin": sesion.hora_fin,
+            "hora_inicio": remove_tz(sesion.hora_inicio),
+            "hora_fin": remove_tz(sesion.hora_fin),
             "enlace_llamada": sesion.enlace_llamada,
             "calidad_video": sesion.calidad_video.value if sesion.calidad_video else None,
             "participantes": participantes_count,
@@ -240,7 +234,7 @@ async def get_course_sessions(course_id: int, current=Depends(verify_token), db:
     if not sesiones:
         return {"message": "No hay sesiones programadas para este curso"}
 
-    now = datetime.now()
+    now = now_naive()
     sesiones_data = []
 
     for sesion in sesiones:
@@ -262,8 +256,8 @@ async def get_course_sessions(course_id: int, current=Depends(verify_token), db:
             "sesion_id": sesion.id_sesion,
             "titulo": sesion.titulo,
             "descripcion": sesion.descripcion,
-            "hora_inicio": sesion.hora_inicio,
-            "hora_fin": sesion.hora_fin,
+            "hora_inicio": remove_tz(sesion.hora_inicio),
+            "hora_fin": remove_tz(sesion.hora_fin),
             "enlace_llamada": sesion.enlace_llamada,
             "calidad_video": sesion.calidad_video.value if sesion.calidad_video else None,
             "estado": estado,
