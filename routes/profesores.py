@@ -175,7 +175,9 @@ async def get_calendar(professor_id: int, current=Depends(verify_token), db: Ses
         return {"message": "No hay sesiones programadas"}
 
     calendario = []
-    now = datetime.now()
+    
+    now_utc = datetime.now(timezone.utc)
+    now_local = now_utc - timedelta(hours=6)
 
     for sesion in sesiones:
         # Contar participantes (si existen)
@@ -188,9 +190,9 @@ async def get_calendar(professor_id: int, current=Depends(verify_token), db: Ses
         curso = db.query(Cursos).filter(Cursos.id == sesion.id_curso).first()
 
         # 🕒 Determinar estado de la sesión
-        if sesion.hora_fin and sesion.hora_fin < now:
+        if sesion.hora_fin < now_local:
             estado = "concluida"
-        elif sesion.hora_inicio <= now <= sesion.hora_fin:
+        elif sesion.hora_inicio <= now_local <= sesion.hora_fin:
             estado = "en_curso"
         else:
             estado = "futura"
