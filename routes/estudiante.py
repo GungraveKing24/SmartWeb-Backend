@@ -142,8 +142,8 @@ async def get_calendar(student_id: int, current=Depends(verify_token), db: Sessi
     # Buscar todas las sesiones virtuales de esos cursos
     sesiones = db.query(Sesiones_Virtuales).filter(
         Sesiones_Virtuales.id_curso.in_(cursos_ids),
-        Sesiones_Virtuales.hora_inicio >= start_of_week,
-        Sesiones_Virtuales.hora_fin <= end_of_week
+        Sesiones_Virtuales.hora_inicio >= start_of_week.isoformat(),
+        Sesiones_Virtuales.hora_fin <= end_of_week.isoformat()
     ).order_by(Sesiones_Virtuales.hora_inicio.asc()).all()
 
     if not sesiones:
@@ -152,16 +152,16 @@ async def get_calendar(student_id: int, current=Depends(verify_token), db: Sessi
     calendario = []
     
     #now = now_naive()
-    now = datetime.now()
+    now = datetime.now(timezone.utc)
 
     for sesion in sesiones:
         curso = db.query(Cursos).filter(Cursos.id == sesion.id_curso).first()
         profesor = db.query(Usuarios).filter(Usuarios.id == curso.profesor_id).first()
 
         # 🕒 Determinar estado de la llamada
-        if sesion.hora_fin < now:
+        if sesion.hora_fin < now.isoformat():
             estado = "concluida"
-        elif sesion.hora_inicio <= now <= sesion.hora_fin:
+        elif sesion.hora_inicio <= now.isoformat() <= sesion.hora_fin:
             estado = "en_curso"
         else:
             estado = "futura"
