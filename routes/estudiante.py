@@ -144,8 +144,8 @@ async def get_calendar(student_id: int, current=Depends(verify_token), db: Sessi
     # Buscar todas las sesiones virtuales de esos cursos
     sesiones = db.query(Sesiones_Virtuales).filter(
         Sesiones_Virtuales.id_curso.in_(cursos_ids),
-        Sesiones_Virtuales.hora_inicio >= start_of_week_utc,
-        Sesiones_Virtuales.hora_fin <= end_of_week_utc
+        Sesiones_Virtuales.hora_inicio <= end_of_week_utc,
+        Sesiones_Virtuales.hora_fin >= start_of_week_utc
     ).order_by(Sesiones_Virtuales.hora_inicio.asc()).all()
 
     if not sesiones:
@@ -178,7 +178,7 @@ async def get_calendar(student_id: int, current=Depends(verify_token), db: Sessi
             "estado": estado
         })
 
-    return {"calendario": calendario, "total": len(calendario)}
+    return {"calendario": calendario, "total": len(calendario), "start_week": start_of_week, "end_of_week": end_of_week, "startUTC": start_of_week_utc, "endUTC": end_of_week_utc, "now": today}
 
 @router.get("/available")
 async def get_available_courses(
