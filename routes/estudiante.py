@@ -134,16 +134,15 @@ async def get_calendar(student_id: int, current=Depends(verify_token), db: Sessi
     cursos_ids = [i.id_curso for i in inscripciones]
 
     # 🗓 Calcular inicio y fin de la semana actual
-    #today = now_naive()
-    today = datetime.now(timezone.utc)
+    today = now_naive()
     start_of_week = today - timedelta(days=today.weekday())  # lunes
     end_of_week = start_of_week + timedelta(days=6)          # domingo
 
     # Buscar todas las sesiones virtuales de esos cursos
     sesiones = db.query(Sesiones_Virtuales).filter(
         Sesiones_Virtuales.id_curso.in_(cursos_ids),
-        Sesiones_Virtuales.hora_inicio >= start_of_week.isoformat(),
-        Sesiones_Virtuales.hora_fin <= end_of_week.isoformat()
+        Sesiones_Virtuales.hora_inicio >= start_of_week,
+        Sesiones_Virtuales.hora_fin <= end_of_week
     ).order_by(Sesiones_Virtuales.hora_inicio.asc()).all()
 
     if not sesiones:
@@ -151,17 +150,16 @@ async def get_calendar(student_id: int, current=Depends(verify_token), db: Sessi
 
     calendario = []
     
-    #now = now_naive()
-    now = datetime.now(timezone.utc)
+    now = now_naive()
 
     for sesion in sesiones:
         curso = db.query(Cursos).filter(Cursos.id == sesion.id_curso).first()
         profesor = db.query(Usuarios).filter(Usuarios.id == curso.profesor_id).first()
 
         # 🕒 Determinar estado de la llamada
-        if sesion.hora_fin < now.isoformat():
+        if sesion.hora_fin < now:
             estado = "concluida"
-        elif sesion.hora_inicio <= now.isoformat() <= sesion.hora_fin:
+        elif sesion.hora_inicio <= now <= sesion.hora_fin:
             estado = "en_curso"
         else:
             estado = "futura"
