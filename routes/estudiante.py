@@ -138,11 +138,14 @@ async def get_calendar(student_id: int, current=Depends(verify_token), db: Sessi
     start_of_week = today - timedelta(days=today.weekday())  # lunes
     end_of_week = start_of_week + timedelta(days=6)          # domingo
 
+    start_of_week_utc = start_of_week.replace(tzinfo=timezone.utc)
+    end_of_week_utc = end_of_week.replace(tzinfo=timezone.utc)
+
     # Buscar todas las sesiones virtuales de esos cursos
     sesiones = db.query(Sesiones_Virtuales).filter(
         Sesiones_Virtuales.id_curso.in_(cursos_ids),
-        Sesiones_Virtuales.hora_inicio >= start_of_week,
-        Sesiones_Virtuales.hora_fin <= end_of_week
+        Sesiones_Virtuales.hora_inicio <= end_of_week_utc,
+        Sesiones_Virtuales.hora_fin >= start_of_week_utc
     ).order_by(Sesiones_Virtuales.hora_inicio.asc()).all()
 
     if not sesiones:
