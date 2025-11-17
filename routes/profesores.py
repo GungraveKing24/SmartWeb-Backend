@@ -155,8 +155,8 @@ async def get_calendar(professor_id: int, current=Depends(verify_token), db: Ses
     cursos_ids = [c.id for c in cursos]
 
     # 🗓 Calcular el rango de la semana actual (lunes a domingo)
-    today = local()
-    start_of_week = today - timedelta(days=today.weekday())  # lunes
+    now = now_naive()
+    start_of_week = now - timedelta(days=now.weekday())  # lunes
     end_of_week = start_of_week + timedelta(days=6)          # domingo
 
     # Buscar todas las sesiones virtuales asociadas a esos cursos
@@ -171,8 +171,6 @@ async def get_calendar(professor_id: int, current=Depends(verify_token), db: Ses
 
     calendario = []
     
-    now = now_naive()
-
     for sesion in sesiones:
         # Contar participantes (si existen)
         participantes_count = db.query(Participantes_Sesion_V).filter(
