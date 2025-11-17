@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from config import SessionLocal
 from model.models import Cursos, RoleLlamada, Usuarios, Sesiones_Virtuales, Participantes_Sesion_V
 from schemas.s_cursos import CursoCreate 
@@ -156,7 +156,7 @@ async def get_calendar(professor_id: int, current=Depends(verify_token), db: Ses
 
     # 🗓 Calcular el rango de la semana actual (lunes a domingo)
     #now = now_naive()
-    now = datetime.now()
+    now = datetime.now(timezone.utc)
     start_of_week = now - timedelta(days=now.weekday())  # lunes
     end_of_week = start_of_week + timedelta(days=6)          # domingo
 

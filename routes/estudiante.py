@@ -135,7 +135,7 @@ async def get_calendar(student_id: int, current=Depends(verify_token), db: Sessi
 
     # 🗓 Calcular inicio y fin de la semana actual
     #today = now_naive()
-    today = datetime.now()
+    today = datetime.now(timezone.utc)
     start_of_week = today - timedelta(days=today.weekday())  # lunes
     end_of_week = start_of_week + timedelta(days=6)          # domingo
 
