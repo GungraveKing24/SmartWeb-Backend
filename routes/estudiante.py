@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 import uuid
 from config import SessionLocal
 from fastapi import APIRouter, Depends, HTTPException
@@ -134,7 +134,8 @@ async def get_calendar(student_id: int, current=Depends(verify_token), db: Sessi
     cursos_ids = [i.id_curso for i in inscripciones]
 
     # 🗓 Calcular inicio y fin de la semana actual
-    today = now_naive()
+    #today = now_naive()
+    today = datetime.now()
     start_of_week = today - timedelta(days=today.weekday())  # lunes
     end_of_week = start_of_week + timedelta(days=6)          # domingo
 
@@ -150,7 +151,8 @@ async def get_calendar(student_id: int, current=Depends(verify_token), db: Sessi
 
     calendario = []
     
-    now = now_naive()
+    #now = now_naive()
+    now = datetime.now()
 
     for sesion in sesiones:
         curso = db.query(Cursos).filter(Cursos.id == sesion.id_curso).first()

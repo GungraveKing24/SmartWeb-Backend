@@ -155,7 +155,8 @@ async def get_calendar(professor_id: int, current=Depends(verify_token), db: Ses
     cursos_ids = [c.id for c in cursos]
 
     # 🗓 Calcular el rango de la semana actual (lunes a domingo)
-    now = now_naive()
+    #now = now_naive()
+    now = datetime.now()
     start_of_week = now - timedelta(days=now.weekday())  # lunes
     end_of_week = start_of_week + timedelta(days=6)          # domingo
 
