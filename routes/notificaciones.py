@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from model.models import EstadoNotificacion, Notificaciones
 from sqlalchemy.orm import Session
 from config import SessionLocal
-from auth import verify_token
+from services.jwt import verify_token
 
 router = APIRouter(prefix="/notifications", tags=["Notificaciones"])
 
