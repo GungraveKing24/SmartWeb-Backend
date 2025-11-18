@@ -1,4 +1,4 @@
-from datetime import date, datetime, timedelta, timezone
+from datetime import date, datetime, timedelta
 import uuid
 from config import SessionLocal
 from fastapi import APIRouter, Depends, HTTPException
@@ -59,6 +59,7 @@ async def get_active_courses(
     ]
 
     return result
+
 # Obtener los detalles de un curso
 @router.get("/courses/details/{course_id}")
 async def get_course_details(course_id: int, current_user: Usuarios = Depends(verify_token), db: Session = Depends(get_db)):
@@ -116,6 +117,8 @@ async def enroll_in_course(course_code: int, current_user: Usuarios = Depends(ve
 
     return {"message": "Registro exitoso. Verifique su correo si aplica."}
 
+from datetime import datetime, timedelta, timezone
+
 # Ver el calendario de conferencias
 @router.get("/calendar/student/{student_id}")
 async def get_calendar(student_id: int, current=Depends(verify_token), db: Session = Depends(get_db)):
@@ -133,14 +136,14 @@ async def get_calendar(student_id: int, current=Depends(verify_token), db: Sessi
     # Obtener IDs de los cursos
     cursos_ids = [i.id_curso for i in inscripciones]
 
-    # 🗓 Calcular inicio y fin de la semana actual
-    today = now_naive()
-    start_of_week = today - timedelta(days=today.weekday())  # lunes
-    end_of_week = start_of_week + timedelta(days=6)          # domingo
+    # 🗓 Calcular inicio y fin de la semana actual (en UTC para comparar con BD)
+    today_utc = datetime.utcnow().replace(tzinfo=None)
+    start_of_week_utc = today_utc - timedelta(days=today_utc.weekday())
+    end_of_week_utc = start_of_week_utc + timedelta(days=6)
 
-    start_of_week_utc = start_of_week.replace(tzinfo=timezone.utc)
-    end_of_week_utc = end_of_week.replace(tzinfo=timezone.utc)
-
+    print(f"🗓 Semana actual (UTC): {start_of_week_utc} - {end_of_week_utc}")
+    print(f"📅 Hoy (UTC): {today_utc}")
+    
     # Buscar todas las sesiones virtuales de esos cursos
     sesiones = db.query(Sesiones_Virtuales).filter(
         Sesiones_Virtuales.id_curso.in_(cursos_ids),
@@ -153,32 +156,59 @@ async def get_calendar(student_id: int, current=Depends(verify_token), db: Sessi
 
     calendario = []
     
-    now = now_naive()
+    # Hora actual en El Salvador (UTC-6)
+    now_el_salvador = datetime.now(timezone(timedelta(hours=-6))).replace(tzinfo=None)
+    print(f"⏰ Hora actual en El Salvador: {now_el_salvador}")
 
     for sesion in sesiones:
         curso = db.query(Cursos).filter(Cursos.id == sesion.id_curso).first()
         profesor = db.query(Usuarios).filter(Usuarios.id == curso.profesor_id).first()
 
-        # 🕒 Determinar estado de la llamada
-        if sesion.hora_fin < now:
+        # Convertir UTC a hora de El Salvador (UTC-6)
+        if sesion.hora_inicio and sesion.hora_fin:
+            # Asumir que las fechas en BD están en UTC y convertirlas a El Salvador
+            inicio_el_salvador = sesion.hora_inicio.replace(tzinfo=timezone.utc).astimezone(timezone(timedelta(hours=-6))).replace(tzinfo=None)
+            fin_el_salvador = sesion.hora_fin.replace(tzinfo=timezone.utc).astimezone(timezone(timedelta(hours=-6))).replace(tzinfo=None)
+        else:
+            inicio_el_salvador = None
+            fin_el_salvador = None
+
+        print(f"\n📋 Sesión: {sesion.titulo}")
+        print(f"   Inicio (UTC): {sesion.hora_inicio}")
+        print(f"   Fin (UTC): {sesion.hora_fin}")
+        print(f"   Inicio (El Salvador): {inicio_el_salvador}")
+        print(f"   Fin (El Salvador): {fin_el_salvador}")
+        print(f"   Ahora (El Salvador): {now_el_salvador}")
+
+        # 🕒 Determinar estado de la llamada usando hora de El Salvador
+        if fin_el_salvador and fin_el_salvador < now_el_salvador:
             estado = "concluida"
-        elif sesion.hora_inicio <= now <= sesion.hora_fin:
+            print(f"   🔴 ESTADO: CONCLUIDA")
+        elif inicio_el_salvador and inicio_el_salvador <= now_el_salvador <= fin_el_salvador:
             estado = "en_curso"
+            print(f"   🟢 ESTADO: EN CURSO")
         else:
             estado = "futura"
+            print(f"   🔵 ESTADO: FUTURA")
 
         calendario.append({
             "curso": curso.titulo,
             "sesion": sesion.titulo,
             "descripcion": sesion.descripcion,
-            "hora_inicio": remove_tz(sesion.hora_inicio),
-            "hora_fin": remove_tz(sesion.hora_fin),
+            "hora_inicio": inicio_el_salvador,  # ← Enviar hora de El Salvador al frontend
+            "hora_fin": fin_el_salvador,        # ← Enviar hora de El Salvador al frontend
             "enlace_llamada": sesion.enlace_llamada,
             "profesor": f"{profesor.nombre} {profesor.apellido}",
             "estado": estado
         })
 
-    return {"calendario": calendario, "total": len(calendario), "start_week": start_of_week, "end_of_week": end_of_week, "startUTC": start_of_week_utc, "endUTC": end_of_week_utc, "now": today}
+    return {
+        "calendario": calendario, 
+        "total": len(calendario), 
+        "start_week": start_of_week_utc, 
+        "end_of_week": end_of_week_utc, 
+        "now": now_el_salvador  # ← Devolver hora de El Salvador
+    }
 
 @router.get("/available")
 async def get_available_courses(
@@ -225,4 +255,3 @@ async def get_available_courses(
         "message": "Cursos disponibles encontrados",
         "cursos": cursos_response
     }
-

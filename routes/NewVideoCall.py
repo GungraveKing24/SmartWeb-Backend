@@ -80,12 +80,15 @@ async def create_call(Info: CallCreate, current=Depends(verify_token), db:Sessio
         )
     )
 
+    hora_inicio_naive = Info.hora_inicio.replace(tzinfo=None) if Info.hora_inicio.tzinfo else Info.hora_inicio
+    hora_fin_naive = Info.hora_fin.replace(tzinfo=None) if Info.hora_fin.tzinfo else Info.hora_fin
+
     new_session=Sesiones_Virtuales(
         id_curso=Info.curso_id,
         titulo=Info.titulo,
         descripcion=Info.descripcion,
-        hora_inicio=Info.hora_inicio,
-        hora_fin=Info.hora_fin,
+        hora_inicio=hora_inicio_naive,
+        hora_fin=hora_fin_naive,
         enlace_llamada=f"{Info.origen}/call/{enlace}/{Info.curso_id}",
         calidad_video=CalidadVideo.p4K,
         grabacion_url=Info.origen,
@@ -103,7 +106,7 @@ async def create_call(Info: CallCreate, current=Depends(verify_token), db:Sessio
         Participantes_Sesion_V(
             id_sesion=new_session.id_sesion,
             id_usuario=current.id,
-            hora_unido=datetime.utcnow(),
+            hora_unido=datetime.now().replace(tzinfo=None),
             role_llamada=RoleLlamada.HOST
         )
     )

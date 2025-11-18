@@ -51,7 +51,7 @@ async def register_user(user: UsuarioCreate, db: Session = Depends(get_db)):
 
     if default_role.nombre_rol == "Estudiante":
         # Enviar email directo
-        activation_link = f"{DOMINIO_VERIFICACION}/auth/activate/{activation_token}"
+        activation_link = f"{DOMINIO_VERIFICACION}/activate/{activation_token}"
         
         html_message = f"""
         <h2>Hola {user.nombre} 👋</h2>
