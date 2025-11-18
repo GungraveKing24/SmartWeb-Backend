@@ -2,7 +2,7 @@ from functools import cached_property
 from os import name
 from typing import ChainMap
 from fastapi import APIRouter, Depends, HTTPException
-from model.models import CalidadVideo, Cursos, Inscritos_Curso, Participantes_Sesion_V, RoleLlamada, Roles, Sesiones_Virtuales, Usuarios
+from model.models import CalidadVideo, Cursos, Inscritos_Curso, Notificaciones, Participantes_Sesion_V, RoleLlamada, Roles, Sesiones_Virtuales, TipoNotificacion, Usuarios
 from pydantic import BaseModel
 from getstream import Stream
 from getstream.models import UserRequest
@@ -100,6 +100,7 @@ async def create_call(Info: CallCreate, current=Depends(verify_token), db:Sessio
 
     # 🔥 Registrar a todos los participantes en la tabla Participantes_Sesion_V
     participantes = []
+    notificaciones = []
 
     # Agregar al profesor como HOST
     participantes.append(
@@ -122,6 +123,19 @@ async def create_call(Info: CallCreate, current=Depends(verify_token), db:Sessio
         participantes.append(participante)
 
     db.add_all(participantes)
+    db.commit()
+
+    for ins in integrantes:
+        if ins.id_estudiante != current.id: #evitamos enviar notificacion al profesor
+            new_notif = Notificaciones(
+                usuario_id=ins.id_estudiante,
+                titulo="Nueva sesión",
+                mensaje=f"Tu profesor: {current.nombre} {current.apellido} ha creado una nueva sesión",
+                tipo=TipoNotificacion.EN_APP
+            )
+            notificaciones.append(new_notif)
+
+    db.add_all(notificaciones)
     db.commit()
 
     return {
