@@ -2,7 +2,7 @@ from datetime import date, datetime, timedelta
 import uuid
 from config import SessionLocal
 from fastapi import APIRouter, Depends, HTTPException
-from model.models import Inscritos_Curso, Cursos, Usuarios, Sesiones_Virtuales
+from model.models import Inscritos_Curso, Cursos, Usuarios, Sesiones_Virtuales, Notificaciones, TipoNotificacion, EstadoNotificacion
 from sqlalchemy.orm import Session
 from services.jwt import verify_token
 from utils.time import remove_tz, now_naive
@@ -101,6 +101,20 @@ async def enroll_in_course(course_code: int, current_user: Usuarios = Depends(ve
     curso = db.query(Cursos).filter(Cursos.id == course_code).first()
     if not curso:
         raise HTTPException(status_code=404, detail="Curso no encontrado")
+
+    # Obtener profesor dueño del curso
+    profesor_propietario = db.query(Usuarios).filter(Usuarios.id == curso.profesor_id).first()
+    if not profesor_propietario:
+        raise HTTPException(status_code=404, detail="Profesor no encontrado")
+    
+    # Crear notificación para el profesor
+    notificacion = Notificaciones(
+        usuario_id=profesor_propietario.id,
+        titulo="Nuevo estudiante inscrito",
+        mensaje=f"El estudiante {current_user.nombre} {current_user.apellido} se ha inscrito en tu curso: {curso.titulo}.",
+        tipo=TipoNotificacion.EN_APP,
+        status=EstadoNotificacion.PENDIENTE
+    )
 
     enlace = uuid.uuid4()
 
