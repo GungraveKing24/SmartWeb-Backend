@@ -127,7 +127,9 @@ async def enroll_in_course(course_code: int, current_user: Usuarios = Depends(ve
     
     db.add(nueva_inscripcion)
     db.commit()
-    db.refresh(nueva_inscripcion)
+
+    db.add(notificacion)
+    db.commit()
 
     return {"message": "Registro exitoso. Verifique su correo si aplica."}
 
