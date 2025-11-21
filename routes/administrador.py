@@ -30,7 +30,8 @@ async def get_users(current=Depends(verify_token), db: Session = Depends(get_db)
             "nombre": f"{u.nombre} {u.apellido}",
             "email": u.email,
             "rol": u.rol.nombre_rol,
-            "status": u.status.value
+            "status": u.status.value,
+            "max_cursos": u.max_cursos
         }
         for u in usuarios
     ]
