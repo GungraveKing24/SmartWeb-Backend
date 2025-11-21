@@ -76,6 +76,7 @@ class Usuarios(Base):
     profesor_institucion = Column(String, nullable=True, default="")
     profesor_cedula = Column(Integer, nullable=True, default=None)
     motivacion = Column(String, nullable=True, default="")
+    max_cursos = Column(Integer, nullable=True, default=3)
 
     rol = relationship("Roles", back_populates="usuarios")
     cursos_dictados = relationship("Cursos", back_populates="profesor")

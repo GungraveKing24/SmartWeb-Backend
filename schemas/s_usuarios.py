@@ -11,6 +11,7 @@ class UsuarioCreate(BaseModel):
     motivacion: Optional[str] = None
     profesor_institucion: Optional[str] = None
     profesor_cedula: Optional[int] = None
+    max_cursos: Optional[int] = 3
 
 class UsuarioLogin(BaseModel):
     email: EmailStr

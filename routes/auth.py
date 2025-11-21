@@ -46,7 +46,8 @@ async def register_user(user: UsuarioCreate, db: Session = Depends(get_db)):
         status="Inactivo",
         motivacion=user.motivacion, 
         profesor_institucion=user.profesor_institucion,
-        profesor_cedula=user.profesor_cedula
+        profesor_cedula=user.profesor_cedula,
+        max_cursos=3
     )
 
     if default_role.nombre_rol == "Estudiante":

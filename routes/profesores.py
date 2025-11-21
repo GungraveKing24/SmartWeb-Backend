@@ -56,6 +56,14 @@ async def create_course(course: CursoCreate, current_user: Usuarios = Depends(ve
     if existing_course:
         raise HTTPException(status_code=400, detail="No se puede repetir nombre de curso")
 
+    cursos_count = db.query(Cursos).filter(Cursos.profesor_id == current_user.id).count()
+    
+    if cursos_count >= current_user.max_cursos:
+        raise HTTPException(
+            status_code=400,
+            detail=f"No puedes crear más de {current_user.max_cursos} cursos"
+        )
+    
     new_course = Cursos(
         titulo=course.titulo,
         descripcion=course.descripcion,

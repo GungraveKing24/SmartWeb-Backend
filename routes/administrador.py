@@ -194,3 +194,27 @@ async def get_courses(current=Depends(verify_token), db: Session = Depends(get_d
         })
 
     return data
+
+@router.put("/change/max-cursos/{profesor_id}")
+async def change_max_cursos(profesor_id: int, count: int, current=Depends(verify_token), db: Session = Depends(get_db)):
+    # Solo administrador
+    if current.role_name != "Administrador":
+        raise HTTPException(status_code=403, detail="Acceso denegado")
+
+    profesor = db.query(Usuarios).filter(
+        Usuarios.id == profesor_id,
+        Usuarios.role == 2  # Asegura que sea profesor (si 2 es Profesor)
+    ).first()
+
+    if not profesor:
+        raise HTTPException(status_code=404, detail="Profesor no encontrado")
+
+    # Actualizar el límite
+    profesor.max_cursos = count
+    db.commit()
+
+    return {
+        "message": "Límite de cursos actualizado correctamente",
+        "profesor_id": profesor_id,
+        "nuevo_maximo": count
+    }
