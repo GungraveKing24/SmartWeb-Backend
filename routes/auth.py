@@ -105,6 +105,9 @@ async def login_user(user_data: UsuarioLogin, db: Session = Depends(get_db)):
     
     if not user.confirmado:
         raise HTTPException(status_code=403, detail="Cuenta no confirmada")
+    
+    if not user.status == "Activo":
+        raise HTTPException(status_code=403, detail="Cuenta desactivada")
 
     # Control de múltiples sesiones
     existing_token = db.query(AuthToken).filter(
@@ -174,9 +177,7 @@ async def logout_user(
 
     # Marcar usuario como inactivo
     user = db.query(Usuarios).filter(Usuarios.id == token_db.user_id).first()
-    if user:
-        user.status = "Inactivo"
-
+    
     db.commit()
 
     return {"message": "Sesión cerrada correctamente"}
