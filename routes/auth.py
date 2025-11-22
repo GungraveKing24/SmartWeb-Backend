@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta, timezone
-from model.models import Usuarios, AuthToken, Roles
+from model.models import Usuarios, AuthToken, Roles, EstadoUsuario
 from services.cifrar import hash_password
 from schemas.s_usuarios import UsuarioLogin, UsuarioCreate
 from services.cifrar import verify_password
@@ -106,7 +106,7 @@ async def login_user(user_data: UsuarioLogin, db: Session = Depends(get_db)):
     if not user.confirmado:
         raise HTTPException(status_code=403, detail="Cuenta no confirmada")
     
-    if not user.status == "Activo":
+    if user.status != EstadoUsuario.Activo:
         raise HTTPException(status_code=403, detail="Cuenta desactivada")
 
     # Control de múltiples sesiones
